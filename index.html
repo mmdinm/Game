@@ -62,15 +62,22 @@ window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
 function update() {
-  if (keys["ArrowRight"]) player.vx += 0.2;
-  if (keys["ArrowLeft"]) player.vx -= 0.2;
+  // 入力があるときだけ加速
+  if (keys["ArrowRight"]) {
+    player.vx += 0.3;
+  } else if (keys["ArrowLeft"]) {
+    player.vx -= 0.3;
+  } else {
+    // キーを押していないときは止まる（摩擦を強くする）
+    player.vx *= 0.8;
+    if (Math.abs(player.vx) < 0.05) player.vx = 0;
+  }
 
+  // 重力
   player.vy += gravity;
 
   player.x += player.vx;
   player.y += player.vy;
-
-  player.vx *= 0.99;
 
   // 地面との当たり判定
   for (let i = 0; i < ground.length - 1; i++) {
@@ -83,9 +90,21 @@ function update() {
 
       if (player.y + player.radius > groundY) {
         player.y = groundY - player.radius;
-        player.vy *= -0.3;
+        player.vy = 0; // バウンドしないようにする
         player.rotation += player.vx * 0.05;
       }
+    }
+  }
+
+  // ゴール判定
+  if (Math.abs(player.x - goal.x) < 30 && Math.abs(player.y - goal.y) < 30) {
+    alert("ゴール！おめでとう！");
+    player.x = 100;
+    player.y = 100;
+    player.vx = 0;
+    player.vy = 0;
+  }
+}
     }
   }
 
