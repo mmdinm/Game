@@ -3,176 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>おにぎり転がりゲーム</title>
+<title>おにぎり具当てゲーム（ホラー強化）</title>
 <style>
   body {
     margin: 0;
-    overflow: hidden;
-    background: linear-gradient(#87ceeb, #ffffff);
     font-family: sans-serif;
+    background: black;
+    color: white;
+    text-align: center;
+    overflow: hidden;
   }
 
-  canvas {
-    display: block;
+  #game { padding-top: 40px; }
+
+  .onigiri {
+    width: 150px;
+    height: 150px;
+    margin: 20px auto;
+    position: relative;
   }
 
-  #ui {
+  .rice {
+    width: 100%; height: 100%;
+    background: white;
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  }
+
+  .nori {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    color: #333;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px; height: 40px;
+    background: black;
+  }
+
+  button {
+    margin: 10px;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+
+  #result { margin-top: 20px; font-size: 20px; }
+
+  /* ホラー演出 */
+  #jumpscare {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.1s;
+  }
+
+  #jumpscare.show {
+    opacity: 1;
+  }
+
+  .face {
+    width: 300px;
+    height: 300px;
+  }
+
+  @keyframes shake {
+    0% { transform: translate(0,0); }
+    25% { transform: translate(5px,-5px); }
+    50% { transform: translate(-5px,5px); }
+    75% { transform: translate(5px,5px); }
+    100% { transform: translate(0,0); }
+  }
+
+  .shake {
+    animation: shake 0.2s infinite;
   }
 </style>
 </head>
 <body>
-<div id="ui">← → で操作！ゴールを目指せ！</div>
-<canvas id="game"></canvas>
+
+<div id="game">
+  <h1>おにぎりの具、当てられる？</h1>
+
+  <div class="onigiri">
+    <div class="rice"></div>
+    <div class="nori"></div>
+  </div>
+
+  <div id="choices"></div>
+  <div id="result"></div>
+</div>
+
+<!-- ジャンプスケア -->
+<div id="jumpscare">
+  <svg class="face" viewBox="0 0 200 200">
+    <circle cx="100" cy="100" r="90" fill="black" stroke="white" stroke-width="3"/>
+    <circle cx="70" cy="80" r="15" fill="white"/>
+    <circle cx="130" cy="80" r="15" fill="white"/>
+    <circle cx="70" cy="80" r="5" fill="black"/>
+    <circle cx="130" cy="80" r="5" fill="black"/>
+    <ellipse cx="100" cy="130" rx="40" ry="20" fill="white"/>
+  </svg>
+</div>
 
 <script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+const fillings = [
+  ["鮭", "ツナ"],
+  ["梅", "昆布"],
+  ["明太子", "おかか"],
+  ["？？？", "鮭"]
+];
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+let current;
+let correct;
 
-let gravity = 0.5;
+function nextRound() {
+  document.getElementById("result").textContent = "";
+  document.body.classList.remove("shake");
 
-let player = {
-  x: 100,
-  y: 100,
-  radius: 20,
-  vx: 0,
-  vy: 0,
-  rotation: 0
-};
+  current = fillings[Math.floor(Math.random() * fillings.length)];
+  correct = current[Math.floor(Math.random() * 2)];
 
-let keys = {};
+  const choicesDiv = document.getElementById("choices");
+  choicesDiv.innerHTML = "";
 
-let ground = [];
-for (let i = 0; i < 2000; i += 50) {
-  ground.push({
-    x: i,
-    y: canvas.height - 200 - Math.sin(i * 0.01) * 100
+  current.forEach(choice => {
+    const btn = document.createElement("button");
+    btn.textContent = choice;
+    btn.onclick = () => check(choice);
+    choicesDiv.appendChild(btn);
   });
 }
 
-let goal = { x: 1900, y: canvas.height - 250 };
+function jumpscare() {
+  const scare = document.getElementById("jumpscare");
+  scare.classList.add("show");
+  document.body.classList.add("shake");
 
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+  // ビープ音（簡易）
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = ctx.createOscillator();
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(800, ctx.currentTime);
+  osc.connect(ctx.destination);
+  osc.start();
 
-function update() {
-  // 入力があるときだけ加速
-  if (keys["ArrowRight"]) {
-    player.vx += 0.3;
-  } else if (keys["ArrowLeft"]) {
-    player.vx -= 0.3;
+  setTimeout(() => {
+    osc.stop();
+    scare.classList.remove("show");
+    document.body.classList.remove("shake");
+  }, 600);
+}
+
+function check(choice) {
+  const result = document.getElementById("result");
+
+  if (choice === correct) {
+    result.textContent = "正解！🍙";
   } else {
-    // キーを押していないときは止まる（摩擦を強くする）
-    player.vx *= 0.8;
-    if (Math.abs(player.vx) < 0.05) player.vx = 0;
-  }
+    result.textContent = "…間違えた";
 
-  // 重力
-  player.vy += gravity;
-
-  player.x += player.vx;
-  player.y += player.vy;
-
-  // 地面との当たり判定
-  for (let i = 0; i < ground.length - 1; i++) {
-    let g1 = ground[i];
-    let g2 = ground[i + 1];
-
-    if (player.x > g1.x && player.x < g2.x) {
-      let t = (player.x - g1.x) / (g2.x - g1.x);
-      let groundY = g1.y + (g2.y - g1.y) * t;
-
-      if (player.y + player.radius > groundY) {
-        player.y = groundY - player.radius;
-        player.vy = 0; // バウンドしないようにする
-        player.rotation += player.vx * 0.05;
-      }
+    if (correct === "？？？") {
+      result.textContent = "見つかっちゃったね";
+      jumpscare();
     }
   }
 
-  // ゴール判定
-  if (Math.abs(player.x - goal.x) < 30 && Math.abs(player.y - goal.y) < 30) {
-    alert("ゴール！おめでとう！");
-    player.x = 100;
-    player.y = 100;
-    player.vx = 0;
-    player.vy = 0;
-  }
-}
-    }
-  }
-
-  // ゴール判定
-  if (Math.abs(player.x - goal.x) < 30 && Math.abs(player.y - goal.y) < 30) {
-    alert("ゴール！おめでとう！");
-    player.x = 100;
-    player.y = 100;
-  }
+  setTimeout(nextRound, 2000);
 }
 
-function drawOnigiri(x, y, r, rot) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(rot);
-
-  ctx.beginPath();
-  ctx.moveTo(0, -r);
-  ctx.lineTo(r, r);
-  ctx.lineTo(-r, r);
-  ctx.closePath();
-  ctx.fillStyle = "white";
-  ctx.fill();
-  ctx.stroke();
-
-  // のり
-  ctx.fillStyle = "black";
-  ctx.fillRect(-5, 0, 10, 10);
-
-  ctx.restore();
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // カメラ
-  ctx.save();
-  ctx.translate(-player.x + 200, 0);
-
-  // 地面描画
-  ctx.beginPath();
-  ctx.moveTo(ground[0].x, ground[0].y);
-  for (let g of ground) {
-    ctx.lineTo(g.x, g.y);
-  }
-  ctx.lineTo(2000, canvas.height);
-  ctx.lineTo(0, canvas.height);
-  ctx.closePath();
-  ctx.fillStyle = "#654321";
-  ctx.fill();
-
-  // ゴール
-  ctx.fillStyle = "red";
-  ctx.fillRect(goal.x - 10, goal.y - 50, 20, 50);
-
-  // プレイヤー
-  drawOnigiri(player.x, player.y, player.radius, player.rotation);
-
-  ctx.restore();
-}
-
-function loop() {
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
-
-loop();
+nextRound();
 </script>
+
 </body>
-</html>
+</html> 
