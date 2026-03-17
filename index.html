@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>おにぎり転がりゲーム</title>
+<style>
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: linear-gradient(#87ceeb, #ffffff);
+    font-family: sans-serif;
+  }
+
+  canvas {
+    display: block;
+  }
+
+  #ui {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: #333;
+  }
+</style>
+</head>
+<body>
+<div id="ui">← → で操作！ゴールを目指せ！</div>
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let gravity = 0.5;
+
+let player = {
+  x: 100,
+  y: 100,
+  radius: 20,
+  vx: 0,
+  vy: 0,
+  rotation: 0
+};
+
+let keys = {};
+
+let ground = [];
+for (let i = 0; i < 2000; i += 50) {
+  ground.push({
+    x: i,
+    y: canvas.height - 200 - Math.sin(i * 0.01) * 100
+  });
+}
+
+let goal = { x: 1900, y: canvas.height - 250 };
+
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
+
+function update() {
+  if (keys["ArrowRight"]) player.vx += 0.2;
+  if (keys["ArrowLeft"]) player.vx -= 0.2;
+
+  player.vy += gravity;
+
+  player.x += player.vx;
+  player.y += player.vy;
+
+  player.vx *= 0.99;
+
+  // 地面との当たり判定
+  for (let i = 0; i < ground.length - 1; i++) {
+    let g1 = ground[i];
+    let g2 = ground[i + 1];
+
+    if (player.x > g1.x && player.x < g2.x) {
+      let t = (player.x - g1.x) / (g2.x - g1.x);
+      let groundY = g1.y + (g2.y - g1.y) * t;
+
+      if (player.y + player.radius > groundY) {
+        player.y = groundY - player.radius;
+        player.vy *= -0.3;
+        player.rotation += player.vx * 0.05;
+      }
+    }
+  }
+
+  // ゴール判定
+  if (Math.abs(player.x - goal.x) < 30 && Math.abs(player.y - goal.y) < 30) {
+    alert("ゴール！おめでとう！");
+    player.x = 100;
+    player.y = 100;
+  }
+}
+
+function drawOnigiri(x, y, r, rot) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+
+  ctx.beginPath();
+  ctx.moveTo(0, -r);
+  ctx.lineTo(r, r);
+  ctx.lineTo(-r, r);
+  ctx.closePath();
+  ctx.fillStyle = "white";
+  ctx.fill();
+  ctx.stroke();
+
+  // のり
+  ctx.fillStyle = "black";
+  ctx.fillRect(-5, 0, 10, 10);
+
+  ctx.restore();
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // カメラ
+  ctx.save();
+  ctx.translate(-player.x + 200, 0);
+
+  // 地面描画
+  ctx.beginPath();
+  ctx.moveTo(ground[0].x, ground[0].y);
+  for (let g of ground) {
+    ctx.lineTo(g.x, g.y);
+  }
+  ctx.lineTo(2000, canvas.height);
+  ctx.lineTo(0, canvas.height);
+  ctx.closePath();
+  ctx.fillStyle = "#654321";
+  ctx.fill();
+
+  // ゴール
+  ctx.fillStyle = "red";
+  ctx.fillRect(goal.x - 10, goal.y - 50, 20, 50);
+
+  // プレイヤー
+  drawOnigiri(player.x, player.y, player.radius, player.rotation);
+
+  ctx.restore();
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
