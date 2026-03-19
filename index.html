@@ -3,181 +3,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>おにぎり具当てゲーム 完成版+</title>
+<title>おにぎり具当てゲーム</title>
 <style>
-  body{margin:0;font-family:sans-serif;background:radial-gradient(circle,#111,#000);color:#fff;text-align:center;overflow:hidden}
-  h1{margin:8px 0}
+body{margin:0;font-family:sans-serif;background:radial-gradient(circle,#111,#000);color:#fff;text-align:center;overflow:hidden}
 
-  /* タイトル画面 */
-  #titleScreen{
-    position:fixed;inset:0;background:radial-gradient(circle,#000,#111);
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-  }
-  #titleScreen h1{font-size:40px}
-  #startBtn{
-    margin-top:20px;padding:15px 40px;font-size:20px;border:none;border-radius:10px;
-    background:#fff;color:#000;cursor:pointer;transition:.2s
-  }
-  #startBtn:hover{transform:scale(1.1)}
+#titleScreen{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center}
+#startBtn{padding:15px 40px;font-size:20px;border:none;border-radius:10px;cursor:pointer}
 
-  #game{display:none;padding-top:6px}
+#game{display:none}
 
-  .onigiri{width:300px;height:280px;margin:6px auto;position:relative;transition:.3s}
-  .onigiri:hover{transform:scale(1.05)}
+.onigiri{width:300px;height:280px;margin:10px auto;position:relative}
+.rice{width:100%;height:100%;background:radial-gradient(circle,#fff,#ddd);clip-path:polygon(50% 5%,95% 95%,5% 95%);border-radius:40px;display:flex;align-items:center;justify-content:center}
 
-  .rice{width:100%;height:100%;background:radial-gradient(circle at 50% 30%,#fff,#e0e0e0);clip-path:polygon(50% 5%,95% 95%,5% 95%);border-radius:40px;box-shadow:0 20px 40px rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center}
+.filling img{width:100px;opacity:0;transform:scale(.5);transition:.5s}
+.filling.show img{opacity:1;transform:scale(1)}
 
-  .filling img{width:100px;height:100px;opacity:0;transform:scale(.5);transition:.5s}
-  .filling.show img{opacity:1;transform:scale(1)}
+.nori{position:absolute;bottom:35px;left:50%;transform:translateX(-50%);width:80px;height:90px;background:#000;border-radius:6px;transition:.5s}
+.nori.open{transform:translate(-50%,120px);opacity:0}
 
-  .nori{position:absolute;bottom:35px;left:50%;transform:translateX(-50%);width:80px;height:90px;background:linear-gradient(#111,#000);border-radius:6px;transition:.6s}
-  .nori.open{transform:translate(-50%,140px) rotate(20deg);opacity:0}
+button{margin:10px;padding:10px 20px}
 
-  button{margin:10px;padding:12px 25px;font-size:18px;border:none;border-radius:10px;background:#222;color:#fff;cursor:pointer}
-  button:hover{background:#444;transform:scale(1.05)}
+#jumpscare{position:fixed;inset:0;background:#000;display:flex;justify-content:center;align-items:center;opacity:0}
+#jumpscare.show{opacity:1}
 
-  #result{min-height:28px}
-  #score,#level,#timer{color:#aaa;margin-top:4px}
-
-  #jumpscare{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none}
-  #jumpscare.show{opacity:1}
-  .face{width:400px;height:400px}
-  .shake{animation:shake .1s infinite}
-  @keyframes shake{0%{transform:translate(0)}25%{transform:translate(10px,-10px)}50%{transform:translate(-10px,10px)}75%{transform:translate(10px,10px)}100%{transform:translate(0)}}
-
-  #clear{position:fixed;inset:0;background:radial-gradient(circle,#fff,#ccc);color:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.6s}
-  #clear.show{opacity:1}
-  .boom{font-size:48px;animation:boom .6s ease}
-  @keyframes boom{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+#clear{position:fixed;inset:0;background:#fff;color:#000;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0}
+#clear.show{opacity:1}
 </style>
 </head>
 <body>
 
 <div id="titleScreen">
-  <h1>🍙 おにぎり具当てゲーム</h1>
-  <button id="startBtn">スタート</button>
+<h1>🍙おにぎりゲーム</h1>
+<button id="startBtn">スタート</button>
 </div>
 
 <div id="game">
-  <h1>おにぎりの具、当てられる？</h1>
-  <div class="onigiri">
-    <div class="rice"><div class="filling" id="filling"></div></div>
-    <div class="nori" id="nori"></div>
-  </div>
-  <div id="choices"></div>
-  <div id="result"></div>
-  <div id="score">スコア:0</div>
-  <div id="level">Lv:1</div>
-  <div id="timer">残り:3</div>
+<h2>具を当てろ！</h2>
+<div class="onigiri">
+<div class="rice"><div id="filling" class="filling"></div></div>
+<div id="nori" class="nori"></div>
+</div>
+<div id="choices"></div>
+<div id="result"></div>
+<div id="score"></div>
+<div id="level"></div>
+<div id="timer"></div>
 </div>
 
-<div id="jumpscare">
-  <svg class="face" viewBox="0 0 200 200">
-    <circle cx="100" cy="100" r="90" fill="black" stroke="white" stroke-width="3"/>
-    <circle cx="70" cy="80" r="20" fill="white"/>
-    <circle cx="130" cy="80" r="20" fill="white"/>
-    <circle cx="70" cy="80" r="8" fill="black"/>
-    <circle cx="130" cy="80" r="8" fill="black"/>
-    <ellipse cx="100" cy="140" rx="50" ry="25" fill="white"/>
-  </svg>
-</div>
+<div id="jumpscare"><h1>😱</h1></div>
 
 <div id="clear">
-  <div class="boom">おめでとう！！</div>
-  <div id="title"></div>
+<h1>おめでとう！！</h1>
+<div id="title"></div>
 </div>
 
 <script>
 const imgs={"鮭":"https://upload.wikimedia.org/wikipedia/commons/3/3a/Grilled_salmon.jpg","ツナ":"https://upload.wikimedia.org/wikipedia/commons/0/0b/Tuna_fish.jpg","梅":"https://upload.wikimedia.org/wikipedia/commons/3/32/Umeboshi.jpg","昆布":"https://upload.wikimedia.org/wikipedia/commons/0/05/Kombu.jpg","明太子":"https://upload.wikimedia.org/wikipedia/commons/0/0c/Mentaiko.jpg","おかか":"https://upload.wikimedia.org/wikipedia/commons/2/2c/Katsuobushi.jpg","？？？":"https://upload.wikimedia.org/wikipedia/commons/8/89/Black_square.jpg"};
 
 let base=[["鮭","ツナ"],["梅","昆布"],["明太子","おかか"]];
-let score=0,level=1,count=0,time=3,timerInt;
+let score=0,level=1,count=0,time=3,timer;
 let current,correct;
 
-// スタート処理
-document.getElementById("startBtn").onclick=()=>{
-  document.getElementById("titleScreen").style.display="none";
-  document.getElementById("game").style.display="block";
-  next();
-};
+startBtn.onclick=()=>{
+ titleScreen.style.display="none";
+ game.style.display="block";
+ next();
+}
 
 function startTimer(){
-  clearInterval(timerInt);
-  time=3;
+ clearInterval(timer);
+ time=3;
+ timer=setInterval(()=>{
+  time--;
   document.getElementById("timer").textContent="残り:"+time;
-  timerInt=setInterval(()=>{
-    time--;
-    document.getElementById("timer").textContent="残り:"+time;
-    if(time<=0){clearInterval(timerInt);check(null);}
-  },1000);
+  if(time<=0){clearInterval(timer);check(null);} 
+ },1000);
 }
 
 function next(){
-  if(count>=10){endGame();return;}
-  document.getElementById("result").textContent="";
-  const f=document.getElementById("filling");
-  const n=document.getElementById("nori");
-  f.classList.remove("show");f.innerHTML="";n.classList.remove("open");
+ if(count>=10){end();return}
+ result.textContent="";
+ filling.classList.remove("show");
+ filling.innerHTML="";
+ nori.classList.remove("open");
 
-  let list=[...base];
-  if(level>=2) list.push(["？？？","鮭"]);
-  if(level>=3) list.push(["？？？","？？？"]);
+ let list=[...base];
+ if(level>=2) list.push(["？？？","鮭"]);
+ if(level>=3) list.push(["？？？","？？？"]);
 
-  current=list[Math.floor(Math.random()*list.length)];
-  correct=current[Math.floor(Math.random()*2)];
+ current=list[Math.floor(Math.random()*list.length)];
+ correct=current[Math.floor(Math.random()*2)];
 
-  let img=document.createElement("img");
-  img.src=imgs[correct];
-  f.appendChild(img);
+ let img=document.createElement("img");
+ img.src=imgs[correct];
+ filling.appendChild(img);
 
-  let cdiv=document.getElementById("choices");cdiv.innerHTML="";
-  current.forEach(x=>{
-    let b=document.createElement("button");b.textContent=x;
-    b.onclick=()=>check(x);
-    cdiv.appendChild(b);
-  });
+ choices.innerHTML="";
+ current.forEach(c=>{
+  let b=document.createElement("button");
+  b.textContent=c;
+  b.onclick=()=>check(c);
+  choices.appendChild(b);
+ });
 
-  startTimer();
+ startTimer();
 }
 
 function reveal(){
-  document.getElementById("nori").classList.add("open");
-  setTimeout(()=>document.getElementById("filling").classList.add("show"),300);
+ nori.classList.add("open");
+ setTimeout(()=>filling.classList.add("show"),300);
 }
 
 function jumpscare(){
-  const j=document.getElementById("jumpscare");
-  j.classList.add("show");document.body.classList.add("shake");
-  let ctx=new AudioContext();let o=ctx.createOscillator();
-  o.frequency.value=1000;o.connect(ctx.destination);o.start();
-  setTimeout(()=>{o.stop();j.classList.remove("show");document.body.classList.remove("shake")},700);
+ jumpscareEl.classList.add("show");
+ setTimeout(()=>jumpscareEl.classList.remove("show"),500);
 }
 
 function check(choice){
-  clearInterval(timerInt);
-  reveal();
-  const r=document.getElementById("result");
+ clearInterval(timer);
+ reveal();
 
-  if(choice===correct){r.textContent="正解！";score++;}
-  else{r.textContent="…間違えた";score=Math.max(0,score-1);setTimeout(jumpscare,300);}
+ if(choice===correct){result.textContent="正解";score++;}
+ else{result.textContent="不正解";score--;jumpscare();}
 
-  count++;
-  if(count%3===0) level++;
+ count++;
+ if(count%3===0) level++;
 
-  document.getElementById("score").textContent="スコア:"+score;
-  document.getElementById("level").textContent="Lv:"+level;
+ scoreEl.textContent="スコア:"+score;
+ levelEl.textContent="Lv:"+level;
 
-  setTimeout(next,2000);
+ setTimeout(next,2000);
 }
 
-function endGame(){
-  document.getElementById("clear").classList.add("show");
-  let title="🍙初心者";
-  if(score>=8) title="👑おにぎりマスター";
-  else if(score>=5) title="🔥中級者";
-  document.getElementById("title").textContent="称号："+title;
+function end(){
+ clearEl.classList.add("show");
+ let t="初心者";
+ if(score>=8)t="マスター";
+ else if(score>=5)t="中級者";
+ title.textContent="称号:"+t;
 }
+
+const filling=document.getElementById("filling");
+const nori=document.getElementById("nori");
+const choices=document.getElementById("choices");
+const result=document.getElementById("result");
+const scoreEl=document.getElementById("score");
+const levelEl=document.getElementById("level");
+const jumpscareEl=document.getElementById("jumpscare");
+const clearEl=document.getElementById("clear");
+
 </script>
 </body>
 </html>
-
