@@ -44,7 +44,7 @@ button{margin:10px;padding:10px 20px}
 <div id="result"></div>
 <div id="score"></div>
 <div id="level"></div>
-<div id="timer"></div>
+
 </div>
 
 <div id="jumpscare"><h1>😱</h1></div>
@@ -58,30 +58,21 @@ button{margin:10px;padding:10px 20px}
 const imgs={"鮭":"https://upload.wikimedia.org/wikipedia/commons/3/3a/Grilled_salmon.jpg","ツナ":"https://upload.wikimedia.org/wikipedia/commons/0/0b/Tuna_fish.jpg","梅":"https://upload.wikimedia.org/wikipedia/commons/3/32/Umeboshi.jpg","昆布":"https://upload.wikimedia.org/wikipedia/commons/0/05/Kombu.jpg","明太子":"https://upload.wikimedia.org/wikipedia/commons/0/0c/Mentaiko.jpg","おかか":"https://upload.wikimedia.org/wikipedia/commons/2/2c/Katsuobushi.jpg","？？？":"https://upload.wikimedia.org/wikipedia/commons/8/89/Black_square.jpg"};
 
 let base=[["鮭","ツナ"],["梅","昆布"],["明太子","おかか"]];
-let score=0,level=1,count=0,time=3,timer;
+let score=0,level=1,count=0;
 let current,correct;
 
 // タイトル画面削除のため自動開始
 window.onload=()=>{ next(); }
 
-function startTimer(){
- clearInterval(timer);
- time=3;
- timer=setInterval(()=>{
-  time--;
-  document.getElementById("timer").textContent="残り:"+time;
-  if(time<=0){clearInterval(timer);check(null);} 
+ 
  },1000);
 }
 
-function next(){
- if(count>=10){end();return}
+function ){end();return}
  result.textContent="";
  filling.classList.remove("show");
  filling.innerHTML="";
- nori.classList.remove("open");
-
- let list=[...base];
+ nori.classList.remot=[...base];
  if(level>=2) list.push(["？？？","鮭"]);
  if(level>=3) list.push(["？？？","？？？"]);
 
@@ -100,7 +91,7 @@ function next(){
   choices.appendChild(b);
  });
 
- startTimer();
+ 
 }
 
 function reveal(){
@@ -114,7 +105,7 @@ function jumpscare(){
 }
 
 function check(choice){
- clearInterval(timer);
+ 
  reveal();
 
  if(choice===correct){result.textContent="正解";score++;}
