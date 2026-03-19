@@ -3,153 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>おにぎり具当てゲーム 完成版</title>
+<title>おにぎり具当てゲーム 完成版+</title>
 <style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    background: radial-gradient(circle, #111, #000);
-    color: white;
-    text-align: center;
-    overflow: hidden;
+  body{margin:0;font-family:sans-serif;background:radial-gradient(circle,#111,#000);color:#fff;text-align:center;overflow:hidden}
+  h1{margin:8px 0}
+
+  /* タイトル画面 */
+  #titleScreen{
+    position:fixed;inset:0;background:radial-gradient(circle,#000,#111);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
   }
-
-  h1 {
-    margin-top: 10px;
-    letter-spacing: 2px;
+  #titleScreen h1{font-size:40px}
+  #startBtn{
+    margin-top:20px;padding:15px 40px;font-size:20px;border:none;border-radius:10px;
+    background:#fff;color:#000;cursor:pointer;transition:.2s
   }
+  #startBtn:hover{transform:scale(1.1)}
 
-  #game { padding-top: 10px; }
+  #game{display:none;padding-top:6px}
 
-  .onigiri {
-    width: 300px;
-    height: 280px;
-    margin: 10px auto;
-    position: relative;
-    transition: transform 0.3s;
-  }
+  .onigiri{width:300px;height:280px;margin:6px auto;position:relative;transition:.3s}
+  .onigiri:hover{transform:scale(1.05)}
 
-  .onigiri:hover {
-    transform: scale(1.05);
-  }
+  .rice{width:100%;height:100%;background:radial-gradient(circle at 50% 30%,#fff,#e0e0e0);clip-path:polygon(50% 5%,95% 95%,5% 95%);border-radius:40px;box-shadow:0 20px 40px rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center}
 
-  .rice {
-    width: 100%; height: 100%;
-    background: radial-gradient(circle at 50% 30%, #fff, #e0e0e0);
-    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+  .filling img{width:100px;height:100px;opacity:0;transform:scale(.5);transition:.5s}
+  .filling.show img{opacity:1;transform:scale(1)}
 
-  .filling img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain;
-    opacity: 0;
-    transform: scale(0.5);
-    transition: all 0.5s;
-  }
+  .nori{position:absolute;bottom:35px;left:50%;transform:translateX(-50%);width:80px;height:90px;background:linear-gradient(#111,#000);border-radius:6px;transition:.6s}
+  .nori.open{transform:translate(-50%,140px) rotate(20deg);opacity:0}
 
-  .filling.show img {
-    opacity: 1;
-    transform: scale(1);
-  }
+  button{margin:10px;padding:12px 25px;font-size:18px;border:none;border-radius:10px;background:#222;color:#fff;cursor:pointer}
+  button:hover{background:#444;transform:scale(1.05)}
 
-  .nori {
-    position: absolute;
-    bottom: 35px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 90px;
-    background: linear-gradient(#111, #000);
-    border-radius: 6px;
-    transition: all 0.6s ease;
-  }
+  #result{min-height:28px}
+  #score,#level,#timer{color:#aaa;margin-top:4px}
 
-  .nori.open {
-    transform: translate(-50%, 140px) rotate(20deg);
-    opacity: 0;
-  }
+  #jumpscare{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none}
+  #jumpscare.show{opacity:1}
+  .face{width:400px;height:400px}
+  .shake{animation:shake .1s infinite}
+  @keyframes shake{0%{transform:translate(0)}25%{transform:translate(10px,-10px)}50%{transform:translate(-10px,10px)}75%{transform:translate(10px,10px)}100%{transform:translate(0)}}
 
-  button {
-    margin: 10px;
-    padding: 12px 25px;
-    font-size: 18px;
-    cursor: pointer;
-    border: none;
-    border-radius: 10px;
-    background: #222;
-    color: white;
-    transition: 0.2s;
-  }
-
-  button:hover {
-    background: #444;
-    transform: scale(1.05);
-  }
-
-  #result {
-    margin-top: 10px;
-    font-size: 22px;
-    min-height: 30px;
-  }
-
-  #score {
-    margin-top: 5px;
-    font-size: 16px;
-    color: #aaa;
-  }
-
-  #jumpscare {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  #jumpscare.show { opacity: 1; }
-
-  .face {
-    width: 400px;
-    height: 400px;
-  }
-
-  .shake {
-    animation: shake 0.1s infinite;
-  }
-
-  @keyframes shake {
-    0% { transform: translate(0,0); }
-    25% { transform: translate(10px,-10px); }
-    50% { transform: translate(-10px,10px); }
-    75% { transform: translate(10px,10px); }
-    100% { transform: translate(0,0); }
-  }
+  #clear{position:fixed;inset:0;background:radial-gradient(circle,#fff,#ccc);color:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.6s}
+  #clear.show{opacity:1}
+  .boom{font-size:48px;animation:boom .6s ease}
+  @keyframes boom{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
 
+<div id="titleScreen">
+  <h1>🍙 おにぎり具当てゲーム</h1>
+  <button id="startBtn">スタート</button>
+</div>
+
 <div id="game">
   <h1>おにぎりの具、当てられる？</h1>
-
   <div class="onigiri">
-    <div class="rice">
-      <div class="filling" id="filling"></div>
-    </div>
+    <div class="rice"><div class="filling" id="filling"></div></div>
     <div class="nori" id="nori"></div>
   </div>
-
   <div id="choices"></div>
   <div id="result"></div>
-  <div id="score">スコア: 0</div>
+  <div id="score">スコア:0</div>
+  <div id="level">Lv:1</div>
+  <div id="timer">残り:3</div>
 </div>
 
 <div id="jumpscare">
@@ -163,106 +82,103 @@
   </svg>
 </div>
 
+<div id="clear">
+  <div class="boom">おめでとう！！</div>
+  <div id="title"></div>
+</div>
+
 <script>
-const fillingImages = {
-  "鮭": "https://upload.wikimedia.org/wikipedia/commons/3/3a/Grilled_salmon.jpg",
-  "ツナ": "https://upload.wikimedia.org/wikipedia/commons/0/0b/Tuna_fish.jpg",
-  "梅": "https://upload.wikimedia.org/wikipedia/commons/3/32/Umeboshi.jpg",
-  "昆布": "https://upload.wikimedia.org/wikipedia/commons/0/05/Kombu.jpg",
-  "明太子": "https://upload.wikimedia.org/wikipedia/commons/0/0c/Mentaiko.jpg",
-  "おかか": "https://upload.wikimedia.org/wikipedia/commons/2/2c/Katsuobushi.jpg",
-  "？？？": "https://upload.wikimedia.org/wikipedia/commons/8/89/Black_square.jpg"
+const imgs={"鮭":"https://upload.wikimedia.org/wikipedia/commons/3/3a/Grilled_salmon.jpg","ツナ":"https://upload.wikimedia.org/wikipedia/commons/0/0b/Tuna_fish.jpg","梅":"https://upload.wikimedia.org/wikipedia/commons/3/32/Umeboshi.jpg","昆布":"https://upload.wikimedia.org/wikipedia/commons/0/05/Kombu.jpg","明太子":"https://upload.wikimedia.org/wikipedia/commons/0/0c/Mentaiko.jpg","おかか":"https://upload.wikimedia.org/wikipedia/commons/2/2c/Katsuobushi.jpg","？？？":"https://upload.wikimedia.org/wikipedia/commons/8/89/Black_square.jpg"};
+
+let base=[["鮭","ツナ"],["梅","昆布"],["明太子","おかか"]];
+let score=0,level=1,count=0,time=3,timerInt;
+let current,correct;
+
+// スタート処理
+document.getElementById("startBtn").onclick=()=>{
+  document.getElementById("titleScreen").style.display="none";
+  document.getElementById("game").style.display="block";
+  next();
 };
 
-const fillings = [
-  ["鮭", "ツナ"],
-  ["梅", "昆布"],
-  ["明太子", "おかか"],
-  ["？？？", "鮭"]
-];
+function startTimer(){
+  clearInterval(timerInt);
+  time=3;
+  document.getElementById("timer").textContent="残り:"+time;
+  timerInt=setInterval(()=>{
+    time--;
+    document.getElementById("timer").textContent="残り:"+time;
+    if(time<=0){clearInterval(timerInt);check(null);}
+  },1000);
+}
 
-let score = 0;
-let current, correct;
+function next(){
+  if(count>=10){endGame();return;}
+  document.getElementById("result").textContent="";
+  const f=document.getElementById("filling");
+  const n=document.getElementById("nori");
+  f.classList.remove("show");f.innerHTML="";n.classList.remove("open");
 
-function nextRound() {
-  document.getElementById("result").textContent = "";
-  document.body.classList.remove("shake");
+  let list=[...base];
+  if(level>=2) list.push(["？？？","鮭"]);
+  if(level>=3) list.push(["？？？","？？？"]);
 
-  const fillingEl = document.getElementById("filling");
-  const nori = document.getElementById("nori");
+  current=list[Math.floor(Math.random()*list.length)];
+  correct=current[Math.floor(Math.random()*2)];
 
-  fillingEl.classList.remove("show");
-  fillingEl.innerHTML = "";
-  nori.classList.remove("open");
+  let img=document.createElement("img");
+  img.src=imgs[correct];
+  f.appendChild(img);
 
-  current = fillings[Math.floor(Math.random() * fillings.length)];
-  correct = current[Math.floor(Math.random() * 2)];
-
-  const img = document.createElement("img");
-  img.src = fillingImages[correct];
-  fillingEl.appendChild(img);
-
-  const choicesDiv = document.getElementById("choices");
-  choicesDiv.innerHTML = "";
-
-  current.forEach(choice => {
-    const btn = document.createElement("button");
-    btn.textContent = choice;
-    btn.onclick = () => check(choice);
-    choicesDiv.appendChild(btn);
+  let cdiv=document.getElementById("choices");cdiv.innerHTML="";
+  current.forEach(x=>{
+    let b=document.createElement("button");b.textContent=x;
+    b.onclick=()=>check(x);
+    cdiv.appendChild(b);
   });
+
+  startTimer();
 }
 
-function reveal() {
+function reveal(){
   document.getElementById("nori").classList.add("open");
-  setTimeout(() => {
-    document.getElementById("filling").classList.add("show");
-  }, 300);
+  setTimeout(()=>document.getElementById("filling").classList.add("show"),300);
 }
 
-function jumpscare() {
-  const scare = document.getElementById("jumpscare");
-  scare.classList.add("show");
-  document.body.classList.add("shake");
-
-  const ctx = new (window.AudioContext || window.webkitAudioContext)();
-  const osc = ctx.createOscillator();
-  osc.type = "sawtooth";
-  osc.frequency.setValueAtTime(1000, ctx.currentTime);
-  osc.connect(ctx.destination);
-  osc.start();
-
-  setTimeout(() => {
-    osc.stop();
-    scare.classList.remove("show");
-    document.body.classList.remove("shake");
-  }, 800);
+function jumpscare(){
+  const j=document.getElementById("jumpscare");
+  j.classList.add("show");document.body.classList.add("shake");
+  let ctx=new AudioContext();let o=ctx.createOscillator();
+  o.frequency.value=1000;o.connect(ctx.destination);o.start();
+  setTimeout(()=>{o.stop();j.classList.remove("show");document.body.classList.remove("shake")},700);
 }
 
-function check(choice) {
-  const result = document.getElementById("result");
-
+function check(choice){
+  clearInterval(timerInt);
   reveal();
+  const r=document.getElementById("result");
 
-  if (choice === correct) {
-    result.textContent = "正解！🍙";
-    score++;
-  } else {
-    result.textContent = "…間違えた";
-    score = Math.max(0, score - 1);
+  if(choice===correct){r.textContent="正解！";score++;}
+  else{r.textContent="…間違えた";score=Math.max(0,score-1);setTimeout(jumpscare,300);}
 
-    // 間違えたら毎回ホラー演出
-    setTimeout(jumpscare, 400);
-  }
+  count++;
+  if(count%3===0) level++;
 
-  document.getElementById("score").textContent = "スコア: " + score;
+  document.getElementById("score").textContent="スコア:"+score;
+  document.getElementById("level").textContent="Lv:"+level;
 
-  setTimeout(nextRound, 3000);
+  setTimeout(next,2000);
 }
 
-nextRound();
+function endGame(){
+  document.getElementById("clear").classList.add("show");
+  let title="🍙初心者";
+  if(score>=8) title="👑おにぎりマスター";
+  else if(score>=5) title="🔥中級者";
+  document.getElementById("title").textContent="称号："+title;
+}
 </script>
-
 </body>
 </html>
 
+ 
