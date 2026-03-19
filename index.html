@@ -7,10 +7,10 @@
 <style>
 body{margin:0;font-family:sans-serif;background:radial-gradient(circle,#111,#000);color:#fff;text-align:center;overflow:hidden}
 
-#titleScreen{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;justify-content:center;align-items:center}
+
 #startBtn{padding:15px 40px;font-size:20px;border:none;border-radius:10px;cursor:pointer}
 
-#game{display:none}
+#game{display:block}
 
 .onigiri{width:300px;height:280px;margin:10px auto;position:relative}
 .rice{width:100%;height:100%;background:radial-gradient(circle,#fff,#ddd);clip-path:polygon(50% 5%,95% 95%,5% 95%);border-radius:40px;display:flex;align-items:center;justify-content:center}
@@ -32,10 +32,7 @@ button{margin:10px;padding:10px 20px}
 </head>
 <body>
 
-<div id="titleScreen">
-<h1>🍙おにぎりゲーム</h1>
-<button id="startBtn">スタート</button>
-</div>
+
 
 <div id="game">
 <h2>具を当てろ！</h2>
@@ -64,11 +61,8 @@ let base=[["鮭","ツナ"],["梅","昆布"],["明太子","おかか"]];
 let score=0,level=1,count=0,time=3,timer;
 let current,correct;
 
-startBtn.onclick=()=>{
- titleScreen.style.display="none";
- game.style.display="block";
- next();
-}
+// タイトル画面削除のため自動開始
+window.onload=()=>{ next(); }
 
 function startTimer(){
  clearInterval(timer);
